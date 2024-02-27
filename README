@@ -1,0 +1,4 @@
+运行需要环境下需要执行：pip install -r requirements.txt  安装第三方库
+python在linux运行托管给docker需要打包成镜像使用Dockerfile:
+docker build --no-cache=true -t  device-sim .
+docker后台运行容器：docker run -d id
