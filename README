@@ -2,3 +2,8 @@
 python在linux运行托管给docker需要打包成镜像使用Dockerfile:
 docker build --no-cache=true -t  device-sim .
 docker后台运行容器：docker run -d id
+
+# crc16协议加密
+# Linux下找不到文件路径加上下面的注解
+# import sys
+# sys.path.append('/home/pythonWork/deviceSimulator')
