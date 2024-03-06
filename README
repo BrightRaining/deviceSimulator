@@ -8,10 +8,4 @@ docker后台运行容器：docker run -d id
 # import sys
 # sys.path.append('/home/pythonWork/deviceSimulator')
 
-如果只需要运行：deviceSimulator/deviceRuler/deviceLogic.py，则只需要导入如下三方库：
-schedule==1.2.1
-serial==0.0.97
-greenlet==1.1.2
-SQLAlchemy==1.4.36
-PyMySQL==1.0.2
-aiohttp==3.8.4
+如果只需要运行：deviceSimulator/deviceRuler/deviceLogic.py，则只需要运行：pip install -r device_simulator_require.txt
