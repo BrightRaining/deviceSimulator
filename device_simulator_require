@@ -1,0 +1,6 @@
+schedule==1.2.1
+serial==0.0.97
+greenlet==1.1.2
+SQLAlchemy==1.4.36
+PyMySQL==1.0.2
+aiohttp==3.8.4

@@ -17,7 +17,7 @@ from bean.DeviceConfig import DeviceConfig
 from dao import DeviceDbData
 from dao.Elements import Device
 from deviceRuler import DeviceAgreement
-from deviceRuler import DeviceLogic
+from deviceRuler.DeviceLogic import DeviceLogic
 
 log = LogPrint.log()
 
@@ -67,7 +67,7 @@ class SocketClient():
         # 组装tcp链接
         self.socket = socket(AF_INET, SOCK_STREAM)
         self.socket.setsockopt(SOL_SOCKET, SO_KEEPALIVE, True)
-        self.socket.ioctl(SIO_KEEPALIVE_VALS, (1, 60 * 1000, 30 * 1000))
+        # self.socket.ioctl(SIO_KEEPALIVE_VALS, (1, 60 * 1000, 30 * 1000))
         try:
             # 获取根据地址和名字布局的通讯链接
             remote_ip = gethostbyname(self.host)
@@ -94,16 +94,18 @@ class SocketClient():
             log.info('Tcp服务在发送消息时连接异常，尝试重新连接(10s),%s', e)
             self.creat_connect()
 
+
 # 注意这个并没有采取协程的方式
-def run_scheduleThread(job_func,*args):
-    job_thread = threading.Thread(target=job_func,)
+def run_scheduleThread(job_func, *args):
+    job_thread = threading.Thread(target=job_func, )
     job_thread.start()
 
 
 def device_tcp_imitate(device: Device = None):
     pool = DeviceLogic().getPoolNum()
     # 数据库数据
-    deviceList = DeviceDbData.search_device()
+    # deviceList = DeviceDbData.search_device()
+    deviceList = regular_device('CS12345678', 500)
     for i in range(0, deviceList.__len__()):
         if deviceList[i].status != '1':
             device = deviceList[i]
@@ -111,15 +113,15 @@ def device_tcp_imitate(device: Device = None):
             sockerClient.creat_connect()
             log.info("设备正在进入协程组：" + str(deviceList[i].device_code))
             # 心跳数据 单线程方式，如果需要多线程需要run_scheduleThread进行启动,使用这个启动的适合就需要将客户端链接和设备信息进行常量化
-            schedule.every(60).seconds.do(heartbeat, sockerClient, device)
+            # schedule.every(60).seconds.do(heartbeat, sockerClient, device)
             # schedule.every(5).seconds.do(run_scheduleThread,heartbeat)
             # 协程方式
             # pool.submit(heartbeat(sockerClient,device))
             pool.submit(handle_device_data(device, sockerClient), i, callback=my_callback)
             # schedule.every(int(device.device_contact)).seconds.do(handle_device_data, device, tcpClient)
-    # 心跳数据数据使用
-    while True:
-        schedule.run_pending()
+    # # 心跳数据数据使用
+    # while True:
+    #     schedule.run_pending()
 
 
 # 心跳函数
@@ -143,8 +145,10 @@ async def handle_device_data(device, sockerClient: SocketClient):
                                             deviceCon.device_real_data,
                                             deviceCon.device_type)
                 agreementRealData = DeviceAgreement.device_code_config(deviceConfig)
-                stopData = agreementRealData
-                sockerClient.send_msg(agreementRealData)
+                if agreementRealData is not None:
+                    stopData = agreementRealData
+                    log.info("设备CODE: " + str(device.device_code) + "可以发送实时数据：" + str(agreementRealData))
+                    sockerClient.send_msg(agreementRealData)
 
         # 创造随机发送某条数据
         randomNum = random.randint(0, (deviceConList.__len__() - 1))
@@ -160,9 +164,10 @@ async def handle_device_data(device, sockerClient: SocketClient):
                                             deviceConList[randomNum].device_alarm,
                                             deviceConList[randomNum].device_type)
                 agreementAlarm = DeviceAgreement.device_code_config(deviceConfig)
-                log.info("可以发送报警数据：" + str(agreementAlarm))
-                stopData = agreementAlarm
-                sockerClient.send_msg(agreementAlarm)
+                if agreementAlarm is not None:
+                    log.info("设备CODE: " + str(device.device_code) + "可以发送报警数据：" + str(agreementAlarm))
+                    stopData = agreementAlarm
+                    sockerClient.send_msg(agreementAlarm)
 
         y = round(random.uniform(0, 1), 2)
         # 如果随机数大于fault_rate则发送故障，如果有故障协议
@@ -173,13 +178,44 @@ async def handle_device_data(device, sockerClient: SocketClient):
                                             deviceConList[randomNum].device_fault,
                                             deviceConList[randomNum].device_type)
                 agreementFault = DeviceAgreement.device_code_config(deviceConfig)
-                logging.info("可以发送故障数据：" + str(agreementFault))
-                stopData = agreementFault
-                sockerClient.send_msg(stopData)
+                if agreementFault is not None:
+                    logging.info("设备CODE: " + str(device.device_code) + "可以发送故障数据：" + str(agreementFault))
+                    stopData = agreementFault
+                    sockerClient.send_msg(stopData)
         await asyncio.sleep(int(device.device_contact))
 
 
+def regular_device(initDeviceCode, deviceNum: int):
+    """
+    压测时不使用数据库，直接按顺序生成
+    :param initDeviceCode:
+    :param deviceNum:
+    :return:
+    """
+    device_list = []
+    # 切割初始设备id进行自增长
+    devPre = ''.join(re.findall(r'[A-Za-z]', initDeviceCode))
+    devEndP = initDeviceCode.split(devPre)  # 英文部分
+    devEnd = int(devEndP[1])  # 数字部分
+    for i in range(0, deviceNum):
+        device = Device()
+        device.device_code = str(devPre + str(int(devEnd) + int(i)))
+        # device.device_code = 'CC12345678'
+        device.device_type = 'EMR1002'
+        device.device_contact = 1
+        device.host = '10.0.0.193'
+        device.port = '17893'
+        device.alarm_rate = 1
+        device.fault_rate = 1
+        device.status = 1
+        device.device_c16_type = '0100'
+        device_list.append(device)
+    return device_list
+
+
 if __name__ == '__main__':
+    regular_device('CS12345678', 5)
+    # device_tcp_imitate()
     y = round(random.uniform(0, 1), 2)
     print("随机小数 y:", y)
     # loop = asyncio.get_event_loop()

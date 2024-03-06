@@ -90,7 +90,10 @@ def device_code_config(deviceConfig: DeviceConfig):
     else:
         tesc = str(deviceConfig.devicePrefix) + (hex_str) + result1
     # 测试数据 -crc校验 6BE1
-    test_data = bytes.fromhex(tesc)
+    try:
+        test_data = bytes.fromhex(tesc)
+    except ValueError as e:
+        return None
     # 计算CRC-16校验码
     crc16 = calculate_crc16(test_data)
     codeDid = '4040' + tesc + str(f'{crc16:04X}') + '2323'
@@ -130,3 +133,9 @@ def replaceDeviceSerialNumberSimilarSMR3100(repCode):
     # 再取前4位，成功剥离流水号
     result = repCode[0:2] + cp[2:] + repCode[6:repCode.__len__()]
     return result
+
+if __name__ == '__main__':
+    deviceConfig = DeviceConfig('CC12345678', '100A',
+                                '0100000117dfff002e1000243f4abf00415666664151999a000000004358c13940cd5abd3fb131913f7ec62b43d992d100020465e51cbb65e51cbb',
+                                'EMR1002')
+    device_code_config(deviceConfig)

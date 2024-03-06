@@ -1,4 +1,7 @@
 # crc16协议加密
+# Linux下找不到文件路径加上下面的注解
+# import sys
+# sys.path.append('/home/pythonWork/deviceSimulator')
 from asyncUtils import TcpUtils
 from asyncUtils.AsyncPool import AsyncPool
 from bean import LogPrint
@@ -18,7 +21,7 @@ class DeviceLogic:
     # 初始化线程池
     def setPoolNum(self):
         global pool
-        pool = AsyncPool(maxsize=1000, pool_maxsize=900)
+        pool = AsyncPool(maxsize=1000, pool_maxsize=16)
 
     def getPoolNum(self):
         if globals() == None or globals().get('pool') == None:
