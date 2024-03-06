@@ -185,7 +185,7 @@ async def handle_device_data(device, sockerClient: SocketClient):
         await asyncio.sleep(int(device.device_contact))
 
 
-def regular_device(initDeviceCode, deviceNum: int):
+def regular_device(initDeviceCode, deviceNum: int,host,port):
     """
     压测时不使用数据库，直接按顺序生成
     :param initDeviceCode:
@@ -203,18 +203,22 @@ def regular_device(initDeviceCode, deviceNum: int):
         # device.device_code = 'CC12345678'
         device.device_type = 'EMR1002'
         device.device_contact = 1
-        device.host = '10.0.0.193'
-        device.port = '17893'
+        device.host = str(host)
+        device.port = str(port)
+        # 1：默认不报警
         device.alarm_rate = 1
+        # 1：默认不触发故障
         device.fault_rate = 1
+        # 1为使用中
         device.status = 1
+        # 协议中规定的设备key
         device.device_c16_type = '0100'
         device_list.append(device)
     return device_list
 
 
 if __name__ == '__main__':
-    regular_device('CS12345678', 5)
+    regular_device('CS12345678', 5,'10.0.0.193','17893')
     # device_tcp_imitate()
     y = round(random.uniform(0, 1), 2)
     print("随机小数 y:", y)
