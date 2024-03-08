@@ -1,3 +1,5 @@
+xxController.py文件是提供给外部启动人员使用，一般情况不用启动和应用不做解释
+
 运行需要环境下需要执行：pip install -r requirements.txt  安装第三方库
 python在linux运行托管给docker需要打包成镜像使用Dockerfile:
 docker build --no-cache=true -t  device-sim .
@@ -8,10 +10,13 @@ docker后台运行容器：docker run -d id
 # import sys
 # sys.path.append('/home/pythonWork/deviceSimulator')
 
-如果只需要运行：deviceSimulator/deviceRuler/deviceLogic.py，则只需要导入如下三方库：
+如果只需要运行：deviceSimulator/deviceRuler/deviceLogic.py，该文件可作为设备模拟器也可作为简单的并发工具使用，只需要导入如下三方库：
 schedule==1.2.1
 serial==0.0.97
 greenlet==1.1.2
 SQLAlchemy==1.4.36
 PyMySQL==1.0.2
 aiohttp==3.8.4
+
+locust_concurrency 包是为了应对设备中心对压测的数量要求单独做出的优化，它相对于调整deviceLogic.py中的通讯时间来说产生的并发数更多，也更加标准，需要增加第三方库：
+locust==2.8.5
