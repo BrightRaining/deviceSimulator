@@ -16,7 +16,7 @@ class AsyncPool(object):
     6. 支持阻塞协程，需要线程进行支持，注意设置线程池：pool_maxsize
     """
 
-    def __init__(self, maxsize=1, pool_maxsize=None, loop=None):
+    def __init__(self, maxsize=500, pool_maxsize=None, loop=None):
         """
         初始化
         :param loop: 事件循环对象

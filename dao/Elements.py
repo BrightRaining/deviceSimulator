@@ -32,6 +32,7 @@ class Device(Base):
     device_msg = Column(String(32), unique=True)
     host = Column(String(32), unique=True)
     port = Column(String(32), unique=True)
+    device_real_data = Column(String(32), unique=True)
     alarm_rate = Column(String(32), unique=True)
     fault_rate = Column(String(32), unique=True)
     status = Column(String(32), unique=True)

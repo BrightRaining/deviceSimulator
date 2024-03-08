@@ -9,9 +9,6 @@ import time
 from socket import *
 import sys
 
-import schedule
-import serial
-
 from bean import LogPrint
 from bean.DeviceConfig import DeviceConfig
 from dao import DeviceDbData
@@ -105,7 +102,7 @@ def device_tcp_imitate(device: Device = None):
     pool = DeviceLogic().getPoolNum()
     # 数据库数据
     # deviceList = DeviceDbData.search_device()
-    deviceList = regular_device('CS12345678', 500)
+    deviceList = regular_device('CS12345678', 500,'10.0.0.193','7893')
     for i in range(0, deviceList.__len__()):
         if deviceList[i].status != '1':
             device = deviceList[i]
@@ -147,7 +144,7 @@ async def handle_device_data(device, sockerClient: SocketClient):
                 agreementRealData = DeviceAgreement.device_code_config(deviceConfig)
                 if agreementRealData is not None:
                     stopData = agreementRealData
-                    log.info("设备CODE: " + str(device.device_code) + "可以发送实时数据：" + str(agreementRealData))
+                    log.info("设备CODE: " + str(device.device_code) + " 可以发送实时数据：" + str(agreementRealData))
                     sockerClient.send_msg(agreementRealData)
 
         # 创造随机发送某条数据
