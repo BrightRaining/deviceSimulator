@@ -5,6 +5,7 @@
 from asyncUtils import TcpUtils
 from asyncUtils.AsyncPool import AsyncPool
 from bean import LogPrint
+from bean.Device_Sim_Config import Device_Sim_Config
 from dao import DeviceDbData
 from dao.Elements import Device
 
@@ -14,6 +15,7 @@ log = LogPrint.log()
 def my_callback(future):
     result = future.result()
     print('返回值: ', result)
+
 
 # 设备侧，模拟数据逻辑处理
 class DeviceLogic:
@@ -28,8 +30,10 @@ class DeviceLogic:
             self.setPoolNum()
         return globals().get("pool")
 
-    def device(self):
-        TcpUtils.device_tcp_imitate()
+    def device(self, device_config=None):
+        if device_config == None:
+            device_config = Device_Sim_Config()
+        TcpUtils.device_tcp_imitate(device_config)
         # pool = getPoolNum()
         # deviceList = DeviceDbData.search_device()
         # for i in range(0, deviceList.__len__()):
@@ -50,4 +54,3 @@ class DeviceLogic:
 if __name__ == '__main__':
     deviceLogic = DeviceLogic()
     deviceLogic.device()
-

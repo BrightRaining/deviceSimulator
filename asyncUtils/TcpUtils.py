@@ -18,7 +18,6 @@ from deviceRuler.DeviceLogic import DeviceLogic
 
 log = LogPrint.log()
 
-
 # https://blog.51cto.com/u_16213681/6976430   tcp编程基础
 # 原始方法
 def tcp_utils(host, port, msg):
@@ -98,11 +97,13 @@ def run_scheduleThread(job_func, *args):
     job_thread.start()
 
 
-def device_tcp_imitate(device: Device = None):
+def device_tcp_imitate(device_config=None):
     pool = DeviceLogic().getPoolNum()
     # 数据库数据
     # deviceList = DeviceDbData.search_device()
-    deviceList = regular_device('CS12345678', 500,'10.0.0.193','7893')
+    # 手写数据，针对数据很多情况
+    deviceList = regular_device(str(device_config.initDeviceCode), int(device_config.device_num), device_config.host,
+                                device_config.port)
     for i in range(0, deviceList.__len__()):
         if deviceList[i].status != '1':
             device = deviceList[i]
@@ -147,42 +148,42 @@ async def handle_device_data(device, sockerClient: SocketClient):
                     log.info("设备CODE: " + str(device.device_code) + " 可以发送实时数据：" + str(agreementRealData))
                     sockerClient.send_msg(agreementRealData)
 
-        # 创造随机发送某条数据
-        randomNum = random.randint(0, (deviceConList.__len__() - 1))
-        # 创造发送报警/故障的概率
-        y = round(random.uniform(0, 1), 2)
-        log.info("报警触发随机数：" + str(y))
-        # 如果随机数大于alarm_rate则发送报警
-        if y > float(device.alarm_rate):
-            # 拼接指定设备需要发送的报警协议信息，如果有报警协议
-            if deviceConList[randomNum].device_alarm is not None and str(
-                    deviceConList[randomNum].device_alarm) != '':
-                deviceConfig = DeviceConfig(device.device_code, deviceConList[randomNum].device_prefix,
-                                            deviceConList[randomNum].device_alarm,
-                                            deviceConList[randomNum].device_type)
-                agreementAlarm = DeviceAgreement.device_code_config(deviceConfig)
-                if agreementAlarm is not None:
-                    log.info("设备CODE: " + str(device.device_code) + "可以发送报警数据：" + str(agreementAlarm))
-                    stopData = agreementAlarm
-                    sockerClient.send_msg(agreementAlarm)
-
-        y = round(random.uniform(0, 1), 2)
-        # 如果随机数大于fault_rate则发送故障，如果有故障协议
-        if y > float(device.fault_rate):
-            if deviceConList[randomNum].device_fault is not None and str(
-                    deviceConList[randomNum].device_fault) != '':
-                deviceConfig = DeviceConfig(device.device_code, deviceConList[randomNum].device_prefix,
-                                            deviceConList[randomNum].device_fault,
-                                            deviceConList[randomNum].device_type)
-                agreementFault = DeviceAgreement.device_code_config(deviceConfig)
-                if agreementFault is not None:
-                    logging.info("设备CODE: " + str(device.device_code) + "可以发送故障数据：" + str(agreementFault))
-                    stopData = agreementFault
-                    sockerClient.send_msg(stopData)
+        # # 创造随机发送某条数据
+        # randomNum = random.randint(0, (deviceConList.__len__() - 1))
+        # # 创造发送报警/故障的概率
+        # y = round(random.uniform(0, 1), 2)
+        # log.info("报警触发随机数：" + str(y))
+        # # 如果随机数大于alarm_rate则发送报警
+        # if y > float(device.alarm_rate):
+        #     # 拼接指定设备需要发送的报警协议信息，如果有报警协议
+        #     if deviceConList[randomNum].device_alarm is not None and str(
+        #             deviceConList[randomNum].device_alarm) != '':
+        #         deviceConfig = DeviceConfig(device.device_code, deviceConList[randomNum].device_prefix,
+        #                                     deviceConList[randomNum].device_alarm,
+        #                                     deviceConList[randomNum].device_type)
+        #         agreementAlarm = DeviceAgreement.device_code_config(deviceConfig)
+        #         if agreementAlarm is not None:
+        #             log.info("设备CODE: " + str(device.device_code) + "可以发送报警数据：" + str(agreementAlarm))
+        #             stopData = agreementAlarm
+        #             sockerClient.send_msg(agreementAlarm)
+        #
+        # y = round(random.uniform(0, 1), 2)
+        # # 如果随机数大于fault_rate则发送故障，如果有故障协议
+        # if y > float(device.fault_rate):
+        #     if deviceConList[randomNum].device_fault is not None and str(
+        #             deviceConList[randomNum].device_fault) != '':
+        #         deviceConfig = DeviceConfig(device.device_code, deviceConList[randomNum].device_prefix,
+        #                                     deviceConList[randomNum].device_fault,
+        #                                     deviceConList[randomNum].device_type)
+        #         agreementFault = DeviceAgreement.device_code_config(deviceConfig)
+        #         if agreementFault is not None:
+        #             logging.info("设备CODE: " + str(device.device_code) + "可以发送故障数据：" + str(agreementFault))
+        #             stopData = agreementFault
+        #             sockerClient.send_msg(stopData)
         await asyncio.sleep(int(device.device_contact))
 
 
-def regular_device(initDeviceCode, deviceNum: int,host,port):
+def regular_device(initDeviceCode, deviceNum: int, host, port):
     """
     压测时不使用数据库，直接按顺序生成
     :param initDeviceCode:
@@ -215,7 +216,7 @@ def regular_device(initDeviceCode, deviceNum: int,host,port):
 
 
 if __name__ == '__main__':
-    regular_device('CS12345678', 5,'10.0.0.193','17893')
+    regular_device('CS12345678', 5, '10.0.0.193', '17893')
     # device_tcp_imitate()
     y = round(random.uniform(0, 1), 2)
     print("随机小数 y:", y)
