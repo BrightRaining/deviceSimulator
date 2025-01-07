@@ -98,7 +98,7 @@ def device_code_config(deviceConfig: DeviceConfig):
     crc16 = calculate_crc16(test_data)
     codeDid = '4040' + tesc + str(f'{crc16:04X}') + '2323'
     # time.sleep(1)  # 暂停2s
-    log.info('准备发送的协议：' + str(codeDid))
+    # log.info('准备发送的协议：' + str(codeDid))
     return str(codeDid)
 
 

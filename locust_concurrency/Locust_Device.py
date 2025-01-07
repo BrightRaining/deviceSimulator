@@ -1,4 +1,5 @@
 import queue
+import random
 import re
 
 from locust import TaskSet, HttpUser, task
@@ -48,8 +49,10 @@ def lo_regular_device(initDeviceCode, deviceNum: int, host, port):
         device = Device_Loc_Config()
         device.device_code = str(devPre + str(int(devEnd) + int(i)))
         # device.device_code = 'CC12345678'
-        device.device_type = 'EMR1002'
-        device.device_contact = 1
+        device.device_type = 'CCF5120'
+        # # 生成1-15的随机数
+        random_number = random.randint(5, 900)
+        device.device_contact = random_number
         device.host = str(host)
         device.port = str(port)
         # 1：默认不报警
@@ -79,7 +82,7 @@ class Device_Data(HttpUser):
     # 定义用户行为的类
     tasks = [Locust_Run]
     queueData = queue.Queue()  # 初始化queue队列, 先进先出
-    device_list = lo_regular_device('CS12346677', 500, '10.0.0.193', '17893')
+    device_list = lo_regular_device('CF202406014', 200, '192.168.0.27', '9934')
     for device in device_list:
         dev = lo_handle_device_data(device)
         # 防止在生成流水号加密失败造成程序终止
@@ -93,7 +96,7 @@ class Device_Data(HttpUser):
 if __name__ == "__main__":
     import os
 
-    # os.system("locust -f Locust_Device.py --host=http://localhost:8089 --headless -u 5 -r 2 -t 30s --html HTML_FILE")  # 访问地址http://localhost:8089
-    cmd = "locust -f Locust_Device.py --host=http://10.0.0.193 --web-host=127.0.0.1 "
-    os.system(cmd)
+    os.system("locust -f Locust_Device.py --host=http://localhost:8089 --headless -u 5 -r 2 -t 18000s --html HTML_FILE")  # 访问地址http://localhost:8089
+    # cmd = "locust -f Locust_Device.py --host=http://10.0.0.193 --web-host=127.0.0.1 "
+    # os.system(cmd)
     print('==================关闭连接，任务结束==================')

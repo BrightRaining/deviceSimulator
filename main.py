@@ -2,6 +2,8 @@
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from asyncUtils import TcpUtils
+from bean.Device_Sim_Config import Device_Sim_Config
 
 
 def print_hi(name):
@@ -12,11 +14,19 @@ def print_hi(name):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
-
+    device_config = Device_Sim_Config()
+    device_config.device_num = 10000
+    # device_config.host = '192.168.0.27'
+    # device_config.port = '9934'
+    device_config.host = '10.0.0.47'
+    device_config.port = '17893'
+    device_config.initDeviceCode = 'CF202400001'
+    device_config.device_type = 'CCF5120'
+    TcpUtils.device_tcp_imitate(device_config)
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 # async def device_tcp_imitate(device: Device):
 #     addr = (str(device.host), int(device.port))
-#     # 组装tcp链接
+#     # 组装tcp链接  CF202405001
 #     tcpClient = socket(AF_INET, SOCK_STREAM)
 #     tcpClient.setsockopt(SOL_SOCKET, SO_KEEPALIVE, True)
 #     tcpClient.ioctl(SIO_KEEPALIVE_VALS, (1, 60 * 1000, 30 * 1000))

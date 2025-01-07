@@ -68,13 +68,15 @@ def search_device_all(deviceType: str):
 
 session.close()
 if __name__ == '__main__':
-        devPre = ''.join(re.findall(r'[A-Za-z]', 'DJ20040088'))
-        devEndP = 'DJ20040088'.split(devPre)  # 英文部分
-        devEnd = devEndP[1]  # 数字部分
-        for i in range(1,201):
-            de = Device(device_type='SMR1210', device_code=str(devPre + str(int(devEnd) + int(i))), device_name='DJ20040088', device_contact='30',
-                        host='192.168.0.188', port='7893',alarm_rate=0.01,fault_rate=1,device_c16_type='0030')
-            t = insert_device(de)
+    device_list = search_device()
+    print(device_list[0])
+        # devPre = ''.join(re.findall(r'[A-Za-z]', 'DJ20040088'))
+        # devEndP = 'DJ20040088'.split(devPre)  # 英文部分
+        # devEnd = devEndP[1]  # 数字部分
+        # for i in range(1,201):
+        #     de = Device(device_type='SMR1210', device_code=str(devPre + str(int(devEnd) + int(i))), device_name='DJ20040088', device_contact='30',
+        #                 host='192.168.0.188', port='7893',alarm_rate=0.01,fault_rate=1,device_c16_type='0030')
+        #     t = insert_device(de)
         # search_tab_by_type_devices("EMR1002")
         # result = search_device()
         # for t in result:

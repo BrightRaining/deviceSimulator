@@ -3,3 +3,4 @@ class Device_Sim_Config:
     host = '47.110.73.94'
     port = '18893'
     initDeviceCode = 'CS12345678'
+    device_type = '1002'

@@ -11,6 +11,7 @@ import sys
 
 from bean import LogPrint
 from bean.DeviceConfig import DeviceConfig
+from bean.Device_Sim_Config import Device_Sim_Config
 from dao import DeviceDbData
 from dao.Elements import Device
 from deviceRuler import DeviceAgreement
@@ -61,16 +62,18 @@ class SocketClient():
     def creat_connect(self):
         addr = (str(self.host), int(self.port))
         # 组装tcp链接
-        self.socket = socket(AF_INET, SOCK_STREAM)
+        client = self.socket = socket(AF_INET, SOCK_STREAM)
         self.socket.setsockopt(SOL_SOCKET, SO_KEEPALIVE, True)
         # self.socket.ioctl(SIO_KEEPALIVE_VALS, (1, 60 * 1000, 30 * 1000))
         try:
             # 获取根据地址和名字布局的通讯链接
             remote_ip = gethostbyname(self.host)
+            # 随意绑定一个本地端口，固定端口可以模拟同IP同端口的上报数据
+            self.socket.bind(('',0))
             # 建立链接
             self.socket.connect(addr)
             log.info('connetion success...')
-            log.info(self.socket.getpeername())
+            log.info("随机绑定的端口："+str(self.socket.getsockname()[1]))
         except OSError as e:
             log.info('Tcp服务连接异常，尝试重新连接(10s),%s', e)
             self.socket.close()
@@ -85,6 +88,7 @@ class SocketClient():
         :return:
         """
         try:
+            log.info('Tcp服务发送消息'+str(msg))
             self.socket.send(bytes.fromhex(msg))
         except OSError as e:
             log.info('Tcp服务在发送消息时连接异常，尝试重新连接(10s),%s', e)
@@ -103,7 +107,7 @@ def device_tcp_imitate(device_config=None):
     # deviceList = DeviceDbData.search_device()
     # 手写数据，针对数据很多情况
     deviceList = regular_device(str(device_config.initDeviceCode), int(device_config.device_num), device_config.host,
-                                device_config.port)
+                                device_config.port,device_config.device_type)
     for i in range(0, deviceList.__len__()):
         if deviceList[i].status != '1':
             device = deviceList[i]
@@ -145,9 +149,15 @@ async def handle_device_data(device, sockerClient: SocketClient):
                 agreementRealData = DeviceAgreement.device_code_config(deviceConfig)
                 if agreementRealData is not None:
                     stopData = agreementRealData
-                    log.info("设备CODE: " + str(device.device_code) + " 可以发送实时数据：" + str(agreementRealData))
+                    # log.info("设备CODE: " + str(device.device_code) + " 可以发送实时数据：" + str(agreementRealData))
                     sockerClient.send_msg(agreementRealData)
-
+            # if deviceCon.device_alarm is not None and str(
+            #         deviceCon.device_alarm) != '':
+            #     deviceConfig = DeviceConfig(device.device_code, deviceCon.device_prefix,
+            #                                 deviceCon.device_alarm,
+            #                                 deviceCon.device_type)
+            #     alarmmentAlarm = DeviceAgreement.device_code_config(deviceConfig)
+            #     sockerClient.send_msg(alarmmentAlarm)
         # # 创造随机发送某条数据
         # randomNum = random.randint(0, (deviceConList.__len__() - 1))
         # # 创造发送报警/故障的概率
@@ -182,10 +192,9 @@ async def handle_device_data(device, sockerClient: SocketClient):
         #             sockerClient.send_msg(stopData)
         await asyncio.sleep(int(device.device_contact))
 
-
-def regular_device(initDeviceCode, deviceNum: int, host, port):
+def regular_device(initDeviceCode, deviceNum: int, host, port,device_type):
     """
-    压测时不使用数据库，直接按顺序生成
+    压测时不使用数据库，直接按逆顺序生成
     :param initDeviceCode:
     :param deviceNum:
     :return:
@@ -195,28 +204,68 @@ def regular_device(initDeviceCode, deviceNum: int, host, port):
     devPre = ''.join(re.findall(r'[A-Za-z]', initDeviceCode))
     devEndP = initDeviceCode.split(devPre)  # 英文部分
     devEnd = int(devEndP[1])  # 数字部分
-    for i in range(0, deviceNum):
+    for i in reversed(range(5001, deviceNum)):
         device = Device()
-        device.device_code = str(devPre + str(int(devEnd) + int(i)))
-        # device.device_code = 'CC12345678'
-        device.device_type = 'EMR1002'
-        device.device_contact = 1
+        number = int(devEnd) + int(i)
+        geshihua_nubner = str(number).zfill(4)
+        device_code = str(devPre + str(geshihua_nubner))
+        device.device_code = device_code
+        device.device_type = device_type
+        # 通讯周期默认为1s
+        device_contact_random_number = random.randint(10, 15)
+        device.device_contact = device_contact_random_number
         device.host = str(host)
         device.port = str(port)
         # 1：默认不报警
-        device.alarm_rate = 1
+        device.alarm_rate = 0.8
         # 1：默认不触发故障
         device.fault_rate = 1
         # 1为使用中
         device.status = 1
         # 协议中规定的设备key
-        device.device_c16_type = '0100'
+        device.device_c16_type = '100b'
         device_list.append(device)
     return device_list
+# def regular_device(initDeviceCode, deviceNum: int, host, port,device_type):
+#     """
+#     压测时不使用数据库，直接按顺序生成
+#     :param initDeviceCode:
+#     :param deviceNum:
+#     :return:
+#     """
+#     device_list = []
+#     # 切割初始设备id进行自增长
+#     devPre = ''.join(re.findall(r'[A-Za-z]', initDeviceCode))
+#     devEndP = initDeviceCode.split(devPre)  # 英文部分
+#     devEnd = int(devEndP[1])  # 数字部分
+#     for i in range(0, deviceNum):
+#         device = Device()
+#         number = int(devEnd) + int(i)
+#         geshihua_nubner = str(number).zfill(4)
+#         device_code = str(devPre + str(geshihua_nubner))
+#         device.device_code = device_code
+#         device.device_type = device_type
+#         # 通讯周期默认为1s
+#         device_contact_random_number = random.randint(10, 15)
+#         device.device_contact = device_contact_random_number
+#         device.host = str(host)
+#         device.port = str(port)
+#         # 1：默认不报警
+#         device.alarm_rate = 0.8
+#         # 1：默认不触发故障
+#         device.fault_rate = 1
+#         # 1为使用中
+#         device.status = 1
+#         # 协议中规定的设备key
+#         device.device_c16_type = '100b'
+#         device_list.append(device)
+#     return device_list
 
 
 if __name__ == '__main__':
-    regular_device('CS12345678', 5, '10.0.0.193', '17893')
+
+
+    # regular_device('CS12345678', 5, '10.0.0.193', '17893')
     # device_tcp_imitate()
     y = round(random.uniform(0, 1), 2)
     print("随机小数 y:", y)
