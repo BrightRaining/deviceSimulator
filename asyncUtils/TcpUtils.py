@@ -204,7 +204,8 @@ def regular_device(initDeviceCode, deviceNum: int, host, port,device_type):
     devPre = ''.join(re.findall(r'[A-Za-z]', initDeviceCode))
     devEndP = initDeviceCode.split(devPre)  # 英文部分
     devEnd = int(devEndP[1])  # 数字部分
-    for i in reversed(range(5001, deviceNum)):
+    # for i in reversed(range(5001, deviceNum)):
+    for i in range(0, deviceNum):
         device = Device()
         number = int(devEnd) + int(i)
         geshihua_nubner = str(number).zfill(4)

@@ -181,22 +181,18 @@ class AsyncPool(object):
         # 获取一个事件循环
         if not loop:
             loop = asyncio.new_event_loop()
-
-        # 线程池
+        # 创建异步线程池
         thread_pool = ThreadPoolExecutor(pool_maxsize)
-
-        # 设置线程池
+        # asyncio默认的执行器是主线程，可以设置默认的执行器，这里设置为异步线程池
         loop.set_default_executor(thread_pool)
-
         # from threading import Thread
         # thread_pool = Thread(target=self._start_thread_loop, args=(loop,))
         # 设置守护进程
         # thread_pool.setDaemon(True)
         # 运行线程，同时协程事件循环也会运行
         # thread_pool.start()
-
         # 启动子线程
-        # 协程开始启动
+        # 协程开始启动，submit()带参数Runnable和Callable进行执行传递的方法参数，这里将asyncio的事务循环和后台运行的事务传递进去，则完成线程代理运行协程的操作
         thread_pool.submit(self._start_thread_loop, loop)
 
         return loop, thread_pool, thread_pool
@@ -282,7 +278,9 @@ class AsyncPool(object):
         if callback:
             future.add_done_callback(callback)
         future.add_done_callback(self.task_done)
-
+    """
+    主用方法
+    """
     def submit(self, func, *args, callback=None):
         """
         非阻塞模式
@@ -296,7 +294,7 @@ class AsyncPool(object):
         self.task_add()
 
         # 将协程注册一个到运行在线程中的循环，thread_loop 会获得一个环任务
-        # 注意：run_coroutine_threadsafe 这个方法只能用在运行在线程中的循环事件使用
+        # 注意：run_coroutine_threadsafe 这个方法目的是将需要执行的方法func提交到已绑定到线程的协程中去，达到协程执行方法的目的
         future = asyncio.run_coroutine_threadsafe(func, self._loop)
         # 给方法添加 await，默认用上面得即可
         # future = asyncio.run_coroutine_threadsafe(self.async_semaphore_func(func(*args)), self._loop)
